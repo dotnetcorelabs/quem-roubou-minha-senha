@@ -8,6 +8,7 @@ using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
 using Microsoft.WindowsAzure.Storage.Table; // Namespace for Table storage types
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace QuemRoubouMinhaSenha.Importer
 {
@@ -18,15 +19,16 @@ namespace QuemRoubouMinhaSenha.Importer
         public string Path { get; private set; }
         private CloudTable Table;
         private int tableItemsOnHold;
-        private readonly int ITEM_ON_HOLD_LIMIT = 1;
+        private readonly int ITEM_ON_HOLD_LIMIT = 60;
         private readonly string SOURCE;
         private Dictionary<string, TableBatchOperation> OperationDirectonary;
         private bool initiated;
+        private DateTime leakedDate = new DateTime(2016, 5, 1);
 
         public Importer(string path)
         {
             Path = path;
-            SOURCE = "MY_SOURCE";
+            SOURCE = "LINKEDIN";
             OperationDirectonary = new Dictionary<string, TableBatchOperation>();
         }
 
@@ -69,23 +71,27 @@ namespace QuemRoubouMinhaSenha.Importer
                 }
                 TableBatchOperation operation = OperationDirectonary[domain];
 
-                operation.Insert(new LeakedAccountEntity(entity[1], entity[0])
+                operation.InsertOrReplace(new LeakedAccountEntity(entity[1], entity[0])
                 {
                     Source = SOURCE,
-                    LeakedDate = DateTime.UtcNow
+                    LeakedDate = leakedDate
                 });
                 tableItemsOnHold++;
 
-                if (tableItemsOnHold >= ITEM_ON_HOLD_LIMIT)
+                if (operation.Count >= ITEM_ON_HOLD_LIMIT)
                 {
+                    Trace.WriteLine($"Begin insert operation update - {operation.Count}");
                     EnsureInit();
                     Table.ExecuteBatch(operation);
+                    Trace.WriteLine($"Finish insert operation update - {operation.Count}");
+                    operation.Clear();
                 }
             }
         }
 
         public void ImportFile(string path)
         {
+            Trace.WriteLine($"Beginning open file {path}");
             //load the file here
             using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
             {

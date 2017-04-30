@@ -10,6 +10,8 @@ namespace QuemRoubouMinhaSenha.Importer
     {
         static void Main(string[] args)
         {
+
+
             string folder = GetArguments(args, "-folder");
             var importer = new Importer(folder);
             importer.ImportFolder();
