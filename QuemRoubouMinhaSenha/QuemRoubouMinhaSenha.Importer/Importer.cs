@@ -41,9 +41,9 @@ namespace QuemRoubouMinhaSenha.Importer
             }
         }
 
-        private void TraceError(Exception ex)
+        private void TraceOperationError(Exception ex, TableBatchOperation operation)
         {
-            Trace.TraceError("Bad error during execution of table operation... Please see the exception below -->");
+            Trace.TraceError($"Bad error during execution of table operation... PartitionKey {operation[0].Entity.PartitionKey} Please see the exception below -->");
             StringBuilder sbEx = new StringBuilder();
             Exception e = ex;
             while (e != null)
@@ -100,7 +100,7 @@ namespace QuemRoubouMinhaSenha.Importer
                     }
                     catch (Exception ex)
                     {
-                        TraceError(ex);
+                        TraceOperationError(ex, operation);
                     }
 
                     operation.Clear();
@@ -112,11 +112,19 @@ namespace QuemRoubouMinhaSenha.Importer
         {
             if (OperationDirectonary != null && OperationDirectonary.Count > 0)
             {
+
                 foreach (var operationKeyValue in OperationDirectonary)
                 {
                     if (operationKeyValue.Value.Count > 0)
                     {
-                        Table.ExecuteBatch(operationKeyValue.Value);
+                        try
+                        {
+                            Table.ExecuteBatch(operationKeyValue.Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            TraceOperationError(ex, operationKeyValue.Value);
+                        }
                     }
                 }
             }
