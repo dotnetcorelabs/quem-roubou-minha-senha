@@ -15,7 +15,7 @@ namespace QuemRoubouMinhaSenha.Importer
     public class Importer
     {
         //TODO - GET A BETTER REGEX EMAIL VALIDATION
-        private static Regex ValidateLine = new Regex(@"^.+?@.+$");
+        private static Regex ValidateLine = new Regex(@"^[\w\d.]+?@[\w\d.]+$");
         public string Path { get; private set; }
         private CloudTable Table;
         private int tableItemsOnHold;
@@ -32,13 +32,26 @@ namespace QuemRoubouMinhaSenha.Importer
             OperationDirectonary = new Dictionary<string, TableBatchOperation>();
         }
 
-        public void EnsureInit()
+        public void EnsureInit(bool force = false)
         {
-            if (!initiated)
+            if (!initiated || force)
             {
                 PrepareTableStorage();
                 initiated = true;
             }
+        }
+
+        private void TraceError(Exception ex)
+        {
+            Trace.TraceError("Bad error during execution of table operation... Please see the exception below -->");
+            StringBuilder sbEx = new StringBuilder();
+            Exception e = ex;
+            while (e != null)
+            {
+                sbEx.AppendLine(e.Message);
+            }
+            Trace.TraceError(sbEx.ToString());
+            EnsureInit(force: true);
         }
 
         private void PrepareTableStorage()
@@ -80,10 +93,16 @@ namespace QuemRoubouMinhaSenha.Importer
 
                 if (operation.Count >= ITEM_ON_HOLD_LIMIT)
                 {
-                    Trace.WriteLine($"Begin insert operation update - {operation.Count}");
-                    EnsureInit();
-                    Table.ExecuteBatch(operation);
-                    Trace.WriteLine($"Finish insert operation update - {operation.Count}");
+                    try
+                    {
+                        EnsureInit();
+                        Table.ExecuteBatch(operation);
+                    }
+                    catch (Exception ex)
+                    {
+                        TraceError(ex);
+                    }
+
                     operation.Clear();
                 }
             }

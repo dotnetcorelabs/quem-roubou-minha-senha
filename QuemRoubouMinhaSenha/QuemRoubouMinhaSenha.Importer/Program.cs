@@ -11,7 +11,7 @@ namespace QuemRoubouMinhaSenha.Importer
     {
         static void Main(string[] args)
         {
-            AddTraceListener(args);
+            //AddTraceListener(args);
             Trace.WriteLine("Begin");
             string folder = GetArguments(args, "-folder");
             var importer = new Importer(folder);
