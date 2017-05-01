@@ -19,7 +19,7 @@ namespace QuemRoubouMinhaSenha.Importer
         public string Path { get; private set; }
         private CloudTable Table;
         private int tableItemsOnHold;
-        private readonly int ITEM_ON_HOLD_LIMIT = 60;
+        private readonly int ITEM_ON_HOLD_LIMIT = 100;
         private readonly string SOURCE;
         private Dictionary<string, TableBatchOperation> OperationDirectonary;
         private bool initiated;
@@ -89,9 +89,23 @@ namespace QuemRoubouMinhaSenha.Importer
             }
         }
 
+        private void FlushPendingBatchOperations()
+        {
+            if (OperationDirectonary != null && OperationDirectonary.Count > 0)
+            {
+                foreach (var operationKeyValue in OperationDirectonary)
+                {
+                    if (operationKeyValue.Value.Count > 0)
+                    {
+                        Table.ExecuteBatch(operationKeyValue.Value);
+                    }
+                }
+            }
+        }
+
         public void ImportFile(string path)
         {
-            Trace.WriteLine($"Beginning open file {path}");
+            Trace.WriteLine($"Starting file {path}");
             //load the file here
             using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
@@ -104,6 +118,8 @@ namespace QuemRoubouMinhaSenha.Importer
                     }
                 }
             }
+
+            FlushPendingBatchOperations();
         }
 
         public void ImportFolder(string folderPath)
@@ -112,12 +128,14 @@ namespace QuemRoubouMinhaSenha.Importer
             foreach (var file in filesInFolder)
             {
                 ImportFile(file);
+                Trace.WriteLine($"Done file {file}");
             }
         }
 
         public void ImportFolder()
         {
             ImportFolder(Path);
+            Trace.WriteLine("Done...");
         }
     }
 }
