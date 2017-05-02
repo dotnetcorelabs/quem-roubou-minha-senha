@@ -112,39 +112,57 @@ namespace QuemRoubouMinhaSenha.Importer
         {
             if (OperationDirectonary != null && OperationDirectonary.Count > 0)
             {
-
-                foreach (var operationKeyValue in OperationDirectonary)
+                Parallel.ForEach(OperationDirectonary, new ParallelOptions { MaxDegreeOfParallelism = 10 }, async operationKeyValue =>
                 {
                     if (operationKeyValue.Value.Count > 0)
-                    {
                         try
                         {
-                            Table.ExecuteBatch(operationKeyValue.Value);
+                            await Table.ExecuteBatchAsync(operationKeyValue.Value);
                         }
                         catch (Exception ex)
                         {
                             TraceOperationError(ex, operationKeyValue.Value);
                         }
-                    }
-                }
+
+                });
+                //foreach (var operationKeyValue in OperationDirectonary)
+                //{
+                //    if (operationKeyValue.Value.Count > 0)
+                //    {
+                //        try
+                //        {
+                //            Table.ExecuteBatch(operationKeyValue.Value);
+                //        }
+                //        catch (Exception ex)
+                //        {
+                //            TraceOperationError(ex, operationKeyValue.Value);
+                //        }
+                //    }
+                //}
             }
         }
 
-        public void ImportFile(string path)
+        public void ImportFile(params string[] pathColl)
         {
-            Trace.WriteLine($"Starting file {path}");
-            //load the file here
-            using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
+            for (int i = 0; i < pathColl.Length; i++)
             {
-                using (StreamReader reader = new StreamReader(fs))
+                string path = pathColl[i];
+                Trace.WriteLine($"Starting file {path}");
+                //load the file here
+                using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
                 {
-                    while (reader.Peek() != -1)
+                    using (StreamReader reader = new StreamReader(fs))
                     {
-                        string line = reader.ReadLine();
-                        InsertItem(line);
+                        while (reader.Peek() != -1)
+                        {
+                            string line = reader.ReadLine();
+                            InsertItem(line);
+                        }
                     }
                 }
+                Trace.WriteLine($"Done file {path}");
             }
+
 
             FlushPendingBatchOperations();
         }
@@ -152,11 +170,8 @@ namespace QuemRoubouMinhaSenha.Importer
         public void ImportFolder(string folderPath)
         {
             string[] filesInFolder = Directory.GetFiles(folderPath);
-            foreach (var file in filesInFolder)
-            {
-                ImportFile(file);
-                Trace.WriteLine($"Done file {file}");
-            }
+            ImportFile(filesInFolder);
+            Trace.WriteLine($"Done folder {folderPath}");
         }
 
         public void ImportFolder()
