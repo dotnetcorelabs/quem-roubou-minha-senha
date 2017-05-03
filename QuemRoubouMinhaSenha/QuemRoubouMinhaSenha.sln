@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuemRoubouMinhaSenha.Import
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuemRoubouMinhaSenha.Services.Api", "QuemRoubouMinhaSenha.Services.Api\QuemRoubouMinhaSenha.Services.Api.csproj", "{71DD51D9-BF1A-4D02-81B1-E37445897EBB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FEE86A1D-6E31-4996-8D84-40E7F2DA2969}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{B21141B1-2249-459A-837C-D863406DF4F1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B21141B1-2249-459A-837C-D863406DF4F1} = {FEE86A1D-6E31-4996-8D84-40E7F2DA2969}
 	EndGlobalSection
 EndGlobal
