@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using QuemRoubouMinhaSenha.Services.Api.Repository;
 using QuemRoubouMinhaSenha.Services.Api.Models;
+using Microsoft.Extensions.Primitives;
 
 namespace QuemRoubouMinhaSenha.Services.Api.Controllers
 {
@@ -29,7 +30,7 @@ namespace QuemRoubouMinhaSenha.Services.Api.Controllers
         public async Task<Account[]> Get(string domain)
         {
             var accountColl = await _repository.GetAccountByDomainAsync(domain);
-            
+
             return accountColl;
         }
 
@@ -37,6 +38,12 @@ namespace QuemRoubouMinhaSenha.Services.Api.Controllers
         [HttpGet("{name}/{domain}", Name = "GetByAccount")]
         public async Task<Account> Get(string name, string domain)
         {
+            string sasKey = string.Empty;
+            StringValues valColl = default(StringValues);
+            Request.Headers.TryGetValue("sas", out valColl);
+
+            sasKey = valColl[0];
+
             var account = await _repository.GetAccountAsync(name, domain);
             return account;
         }

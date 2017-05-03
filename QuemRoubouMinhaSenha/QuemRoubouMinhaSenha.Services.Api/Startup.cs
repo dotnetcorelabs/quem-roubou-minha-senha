@@ -45,6 +45,8 @@ namespace QuemRoubouMinhaSenha.Services.Api
             });
 
             services.AddScoped<ILeakedAccountRepository, LeakedAccountTableStorageRepository>();
+            services.AddScoped<ITokenRepository, SasKeyStorageRepository>();
+
             // Add framework services.
             services.AddMvc();
 
